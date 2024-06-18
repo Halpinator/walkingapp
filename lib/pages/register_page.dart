@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:walkingapp/auth/auth_service.dart';
 import 'package:walkingapp/components/my_button.dart';
 import 'package:walkingapp/components/my_textfield.dart';
 
@@ -15,7 +16,38 @@ class RegisterPage extends StatelessWidget {
   RegisterPage({super.key, required this.onTap});
 
   // Register method
-  void register(){}
+  void register(BuildContext context){
+    //get auth service
+    final _auth = AuthService();
+
+    //if passwords match create user
+    if (_passwordController.text == _confirmPasswordController.text) {
+      try {
+        _auth.signUpWithEmailPassword(
+        _emailController.text,
+        _passwordController.text,
+        );
+      } catch(e) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+          title: Text(e.toString()),
+          )
+        );
+        }
+      } 
+      //if they dont match tell user to redo
+      else {
+        showDialog(
+          context: context,
+          builder: (context) => const AlertDialog(
+            title: Text("Passwords must match"),
+          )
+        );
+      }
+    }
+
+ 
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +112,7 @@ class RegisterPage extends StatelessWidget {
           // login button
           MyButton(
             text: "Register",
-            onTap: register,
+            onTap: () => register(context),
             ),
 
           // Add spacer
