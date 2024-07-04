@@ -1,0 +1,23 @@
+[33mcommit e369baaa86cbbff7f87ec94ac66cbe94ab9747e3[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: David Halpin-Roberts <davidhalpinroberts@gmail.com>
+Date:   Mon Jun 24 19:56:03 2024 +0100
+
+    Added sidebar to home
+
+[33mcommit e93c78d81b8f2f1be228adc213bc52dab5d4aa19[m
+Author: David Halpin-Roberts <davidhalpinroberts@gmail.com>
+Date:   Tue Jun 18 20:54:46 2024 +0100
+
+    Added sign ujp
+
+[33mcommit 8d22df4339db097ccb778bab978cba6c5ce43c51[m
+Author: David Halpin-Roberts <davidhalpinroberts@gmail.com>
+Date:   Tue Jun 18 20:21:28 2024 +0100
+
+    Added account login and sign out with firebase
+
+[33mcommit 9e42cc1829600566a85f0463722924802f080ea5[m
+Author: David Halpin-Roberts <davidhalpinroberts@gmail.com>
+Date:   Mon Jun 17 23:38:18 2024 +0100
+
+    first commit
