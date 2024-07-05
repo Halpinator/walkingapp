@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:walkingapp/auth/auth_service.dart';
+import 'package:walkingapp/pages/planner_page.dart';
 import 'package:walkingapp/pages/settings_page.dart';
 
 class MyDrawer extends StatelessWidget {
@@ -58,6 +59,26 @@ class MyDrawer extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => SettingsPage()
+                        )
+                    );
+                  },
+                ),
+              ),
+               // settings list tile
+              Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: ListTile(
+                  title: Text("Planner"),
+                  leading: Icon(Icons.note),
+                  onTap: () {
+                    // pop the drawer
+                    Navigator.pop(context);
+
+                    // Go to settings page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PlannerPage()
                         )
                     );
                   },
