@@ -1,11 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:walkingapp/auth/auth_gate.dart';
-import 'package:walkingapp/auth/login_or_register.dart';
 import 'package:walkingapp/firebase_options.dart';
 import 'package:walkingapp/themes/light_mode.dart';
-import 'pages/login_page.dart';
-import 'pages/register_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

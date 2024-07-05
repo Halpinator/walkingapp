@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:walkingapp/auth/auth_service.dart';
 import 'package:walkingapp/components/my_button.dart';
 import 'package:walkingapp/components/my_textfield.dart';
@@ -43,7 +42,7 @@ class LoginPage extends StatelessWidget {
         child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          //logo
+          // Logo
           Icon(
             Icons.location_pin,
             size: 60,
@@ -53,7 +52,7 @@ class LoginPage extends StatelessWidget {
           // Add spacer
           const SizedBox(height: 20,),
 
-          // welcome message
+          // Welcome message
           Text(
             "Welcome back to Manchester Walks",
             style: TextStyle(
@@ -65,17 +64,17 @@ class LoginPage extends StatelessWidget {
           // Add spacer
           const SizedBox(height: 30,),
 
-          // email textfield
+          // Email textfield
           MyTextField(
             hintText: "Email",
             obscureText: false,
             controller: _emailController,
           ),
 
-           // Add spacer
+          // Add spacer
           const SizedBox(height: 10,),
 
-          // password textfield
+          // Password textfield
           MyTextField(
             hintText: "Password",
             obscureText: true,
@@ -85,7 +84,7 @@ class LoginPage extends StatelessWidget {
            // Add spacer
           const SizedBox(height: 10,),
 
-          // login button
+          // Login button
           MyButton(
             text: "Login",
             onTap: () => login(context),
@@ -94,7 +93,7 @@ class LoginPage extends StatelessWidget {
           // Add spacer
           const SizedBox(height: 10,),
 
-          // register now
+          // Register now 
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

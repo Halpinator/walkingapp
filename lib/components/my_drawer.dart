@@ -15,7 +15,7 @@ class MyDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -32,53 +32,51 @@ class MyDrawer extends StatelessWidget {
                   ),
                 ),
               
-              // home list tile
+              // Home Tile
               Padding(
                 padding: const EdgeInsets.only(left: 10, top: 5),
                 child: ListTile(
-                  title: Text("Home"),
-                  leading: Icon(Icons.home),
+                  title: const Text("Home"),
+                  leading: const Icon(Icons.home),
                   onTap: () {
-                    // pop the drawer
+                    // Pop the drawer
                     Navigator.pop(context);
                   },
                 ),
               ),
-              // settings list tile
+              // Settings Tile
               Padding(
                 padding: const EdgeInsets.only(left: 10),
                 child: ListTile(
-                  title: Text("Settings"),
-                  leading: Icon(Icons.settings),
+                  title: const Text("Settings"),
+                  leading: const Icon(Icons.settings),
                   onTap: () {
-                    // pop the drawer
+                    // Pop the drawer
                     Navigator.pop(context);
-
                     // Go to settings page
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => SettingsPage()
+                        builder: (context) => const SettingsPage()
                         )
                     );
                   },
                 ),
               ),
-               // settings list tile
+              // Planner Tile
               Padding(
                 padding: const EdgeInsets.only(left: 10),
                 child: ListTile(
-                  title: Text("Planner"),
-                  leading: Icon(Icons.note),
+                  title: const Text("Planner"),
+                  leading: const Icon(Icons.note),
                   onTap: () {
-                    // pop the drawer
+                    // Pop the drawer
                     Navigator.pop(context);
-
-                    // Go to settings page
+                    // Go to Planner page
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => PlannerPage()
+                        builder: (context) => const PlannerPage()
                         )
                     );
                   },
@@ -90,8 +88,8 @@ class MyDrawer extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 10, bottom: 15),
             child: ListTile(
-              title: Text("Logout"),
-              leading: Icon(Icons.logout),
+              title: const Text("Logout"),
+              leading: const Icon(Icons.logout),
               onTap: logout,
             ),
           ),

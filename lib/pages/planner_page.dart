@@ -6,7 +6,7 @@ class PlannerPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Planner Page"),)
+      appBar: AppBar(title: const Text("Planner Page"),)
     );
   }
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:walkingapp/auth/auth_service.dart';
 import 'package:walkingapp/components/my_button.dart';
 import 'package:walkingapp/components/my_textfield.dart';
@@ -18,12 +17,12 @@ class RegisterPage extends StatelessWidget {
   // Register method
   void register(BuildContext context){
     //get auth service
-    final _auth = AuthService();
+    final auth = AuthService();
 
     //if passwords match create user
     if (_passwordController.text == _confirmPasswordController.text) {
       try {
-        _auth.signUpWithEmailPassword(
+        auth.signUpWithEmailPassword(
         _emailController.text,
         _passwordController.text,
         );
@@ -52,12 +51,12 @@ class RegisterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body:Center(
         child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          //logo
+          // Logo
           Icon(
             Icons.location_pin,
             size: 60,
@@ -67,7 +66,7 @@ class RegisterPage extends StatelessWidget {
           // Add spacer
           const SizedBox(height: 20,),
 
-          // welcome message
+          // Welcome message
           Text(
             "Create an account",
             style: TextStyle(
@@ -79,17 +78,17 @@ class RegisterPage extends StatelessWidget {
           // Add spacer
           const SizedBox(height: 30,),
 
-          // email textfield
+          // Email textfield
           MyTextField(
             hintText: "Email",
             obscureText: false,
             controller: _emailController,
           ),
 
-           // Add spacer
+          // Add spacer
           const SizedBox(height: 10,),
 
-          // password textfield
+          // Password textfield
           MyTextField(
             hintText: "Password",
             obscureText: true,
@@ -106,10 +105,10 @@ class RegisterPage extends StatelessWidget {
             controller: _confirmPasswordController,
           ),
 
-           // Add spacer
+          // Add spacer
           const SizedBox(height: 10,),
 
-          // login button
+          // Login button
           MyButton(
             text: "Register",
             onTap: () => register(context),
@@ -118,7 +117,7 @@ class RegisterPage extends StatelessWidget {
           // Add spacer
           const SizedBox(height: 10,),
 
-          // register now
+          // Register now
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
