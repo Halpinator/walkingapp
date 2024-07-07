@@ -1,20 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:walkingapp/components/my_plannertilegridview.dart';
+import 'package:walkingapp/functions/addPlanDialog.dart';
 
-class PlannerPage extends StatelessWidget {
+class PlannerPage extends StatefulWidget {
   PlannerPage({super.key});
 
-  final List<List<String>> todoInformation = [
+  @override
+  State<PlannerPage> createState() => _PlannerPageState();
+}
+
+class _PlannerPageState extends State<PlannerPage> {
+  TextEditingController titleController = TextEditingController();
+
+  TextEditingController descriptionController = TextEditingController();
+
+  final List<List<String>> tileInformation = [
     ["Hello", "Hello"],
     ["David", "Halpin"],
   ];
+
+  void _addTile(String title, String description) {
+    setState(() {
+      tileInformation.add([title, description]);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Planner Page")),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () => addPlanDialog(context, _addTile),
         splashColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
         child: const Icon(
@@ -26,7 +42,7 @@ class PlannerPage extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column (
           children: [
-            Expanded(child: MyPlannerTileGridView(plannerList: todoInformation))
+            Expanded(child: MyPlannerTileGridView(plannerList: tileInformation))
           ],
         ),
       )
