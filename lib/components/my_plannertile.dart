@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 
 class MyPlannerTile extends StatefulWidget {
   final String title;
   final String description;
+  final LatLng startingLocation;
 
   const MyPlannerTile({
     required this.title,
     required this.description,
+    required this.startingLocation,
     super.key
     });
 
@@ -52,7 +55,17 @@ class _PlannerTileState extends State<MyPlannerTile> {
               textAlign: TextAlign.center,
               ),
               
-            const SizedBox(height: 20,)
+            const SizedBox(height: 20,),
+
+            Text(
+              'Location: ${widget.startingLocation.latitude}, ${widget.startingLocation.longitude}',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.normal,
+                fontSize: 10,
+                ),
+              textAlign: TextAlign.center,
+              ),
             ],
           )
         )

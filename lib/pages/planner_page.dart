@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:walkingapp/components/my_plannertilegridview.dart';
 import 'package:walkingapp/functions/addPlanDialog.dart';
 
@@ -19,9 +20,15 @@ class _PlannerPageState extends State<PlannerPage> {
     ["David", "Halpin"],
   ];
 
-  void _addTile(String title, String description) {
+  final List<LatLng> tileLocations = [
+    LatLng(53.4808, -2.2426),
+    LatLng(53.4808, -2.2426),
+  ];
+
+  void _addTile(String title, String description, LatLng startingLocation) {
     setState(() {
       tileInformation.add([title, description]);
+      tileLocations.add(startingLocation);
     });
   }
 
@@ -42,7 +49,7 @@ class _PlannerPageState extends State<PlannerPage> {
         padding: const EdgeInsets.all(16),
         child: Column (
           children: [
-            Expanded(child: MyPlannerTileGridView(plannerList: tileInformation))
+            Expanded(child: MyPlannerTileGridView(plannerList: tileInformation, startingLocation: tileLocations,))
           ],
         ),
       )
