@@ -3,7 +3,7 @@ import 'package:walkingapp/components/my_plannertilegridview.dart';
 import 'package:walkingapp/functions/addPlanDialog.dart';
 
 class PlannerPage extends StatefulWidget {
-  PlannerPage({super.key});
+  const PlannerPage({super.key});
 
   @override
   State<PlannerPage> createState() => _PlannerPageState();

@@ -1,8 +1,13 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 void addPlanDialog(BuildContext context, Function(String, String) addTile) {
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
+  LatLng? selectedLocation;
 
   showDialog(
     context: context,
@@ -20,6 +25,28 @@ void addPlanDialog(BuildContext context, Function(String, String) addTile) {
               controller: descriptionController,
               decoration: const InputDecoration(labelText: 'Description'),
             ),
+            // Map starting point select
+            
+            SizedBox(
+              height: 200,
+              width: 400,
+              child: FlutterMap(
+                options: MapOptions(
+                  initialCenter: LatLng(53.4808, -2.2426),
+                  initialZoom: 13,
+                  onTap: (tapPosition, latLng) {
+                    selectedLocation = latLng;
+                  },
+                ),
+                children: [
+                  TileLayer(
+                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.example.app',
+                      subdomains: ['a', 'b', 'c'],
+                    ),
+                  ],
+              ),
+            ) 
           ],
         ),
         actions: <Widget>[
