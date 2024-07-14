@@ -21,7 +21,9 @@ class _MyPlannerTileGridViewState extends State<MyPlannerTileGridView> {
   Widget build(BuildContext context) {
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+        crossAxisCount: 1,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
       ),
       itemCount: widget.plannerList.length,
       itemBuilder: (BuildContext context, int index) {
