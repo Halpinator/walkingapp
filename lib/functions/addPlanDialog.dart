@@ -1,24 +1,57 @@
-import 'dart:math';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:http/http.dart' as http;
+
+const String apiKey = "5b3ce3597851110001cf62481e0f688e55fc43cd9bd1f5807ec3d81a";
+
+Future<Map<String, dynamic>> fetchRoute(LatLng start, LatLng end) async {
+  final url = Uri.parse(
+      'https://api.openrouteservice.org/v2/directions/foot-walking?api_key=$apiKey&start=${start.longitude},${start.latitude}&end=${end.longitude},${end.latitude}');
+
+  final response = await http.get(url);
+
+  if (response.statusCode == 200) {
+    final data = json.decode(response.body);
+    final geometry = data['features'][0]['geometry']['coordinates'] as List;
+    final route = geometry.map((coord) => LatLng(coord[1], coord[0])).toList();
+    final firstStep = data['features'][0]['properties']['segments'][0]['steps'][0];
+    final firstName = firstStep['name'];
+    final firstInstruction = firstStep['instruction'];
+    return {
+      'route': route,
+      'name': firstName,
+      'instruction': firstInstruction,
+    };
+  } else {
+    throw Exception('Failed to load route');
+  }
+}
 
 void addPlanDialog(BuildContext context, Function(String, String, List<LatLng>) addTile) {
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
   LatLng selectedLocation = LatLng(53.4808, -2.2426);
   double walkLength = 1.0;
+  List<LatLng> generatedRoute = [];
+  String defaultName = '';
+  String defaultInstruction = '';
 
-  List<LatLng> generateRoute(LatLng start, double length) {
-  // Simple route generation logic
-  List<LatLng> route = [start];
-  double distance = 0.01 * length; // example calculation for the route length
-  route.add(LatLng(start.latitude + distance, start.longitude + distance));
-  return route;
-}
 
-List<LatLng> generatedRoute = generateRoute(selectedLocation, walkLength);
+    Future<void> updateRoute() async {
+    LatLng endLocation = LatLng(selectedLocation.latitude + walkLength * 0.01, selectedLocation.longitude + walkLength * 0.01);
+    try {
+      final result = await fetchRoute(selectedLocation, endLocation);
+      generatedRoute = result['route'];
+      defaultName = result['name'];
+      defaultInstruction = result['instruction'];
+    } catch (e) {
+      generatedRoute = []; // Ensure it's empty in case of error
+    }
+  }
+
 
   showDialog(
     context: context,
@@ -52,7 +85,8 @@ List<LatLng> generatedRoute = generateRoute(selectedLocation, walkLength);
                       onPositionChanged: (position, hasGesture) {
                         setState(() {
                           selectedLocation = position.center;
-                          generatedRoute = generateRoute(selectedLocation, walkLength);
+                          //updateRoute();
+                          //generatedRoute = generateRoute(selectedLocation, walkLength);
                         });
                       }
                     ),
@@ -88,7 +122,8 @@ List<LatLng> generatedRoute = generateRoute(selectedLocation, walkLength);
                   onChanged: (value) {
                     setState(() {
                       walkLength = value;
-                      generatedRoute = generateRoute(selectedLocation, walkLength);
+                      //updateRoute();
+                      //generatedRoute = generateRoute(selectedLocation, walkLength);
                     });
                   }
                 )
@@ -105,9 +140,21 @@ List<LatLng> generatedRoute = generateRoute(selectedLocation, walkLength);
               ),
               TextButton(
                 child: const Text('Add'),
-                onPressed: () {
-                    addTile(titleController.text, descriptionController.text, generatedRoute);
+                onPressed: () async {
+                  await updateRoute();
+                  if (generatedRoute.isNotEmpty) {
+                    final title = titleController.text.isEmpty ? defaultName : titleController.text;
+                    final description = descriptionController.text.isEmpty ? defaultInstruction : descriptionController.text;
+                    addTile(title, description, generatedRoute);
                     Navigator.of(context).pop();
+                  } else {
+                    // Show an error message if the route is empty
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('Failed to generate route. Please try again.'),
+                      ),
+                    );
+                  }
                 }
               ),
             ],
