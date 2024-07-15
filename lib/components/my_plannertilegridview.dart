@@ -4,11 +4,11 @@ import 'package:walkingapp/components/my_plannertile.dart';
 
 class MyPlannerTileGridView extends StatefulWidget {
   List<List<String>> plannerList;
-  List<LatLng> startingLocation;
+  List<List<LatLng>> routes;
 
   MyPlannerTileGridView({
     required this.plannerList,
-    required this.startingLocation,
+    required this.routes,
     super.key,
     });
 
@@ -30,7 +30,7 @@ class _MyPlannerTileGridViewState extends State<MyPlannerTileGridView> {
         return MyPlannerTile(
           title: widget.plannerList[index][0],
           description:  widget.plannerList[index][1],
-          startingLocation: widget.startingLocation[index],
+          route: widget.routes[index],
         );
       },
     );

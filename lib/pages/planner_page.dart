@@ -20,15 +20,15 @@ class _PlannerPageState extends State<PlannerPage> {
     ["David", "Halpin"],
   ];
 
-  final List<LatLng> tileLocations = [
-    LatLng(53.4808, -2.2426),
-    LatLng(53.4808, -2.2426),
+  final List<List<LatLng>> tileRoutes = [
+    [LatLng(53.4808, -2.2426), LatLng(53.4818, -2.2436)],
+    [LatLng(53.4808, -2.2426), LatLng(53.4818, -2.2436)],
   ];
 
-  void _addTile(String title, String description, LatLng startingLocation) {
+  void _addTile(String title, String description,  List<LatLng> route) {
     setState(() {
       tileInformation.add([title, description]);
-      tileLocations.add(startingLocation);
+      tileRoutes.add(route);
     });
   }
 
@@ -49,7 +49,7 @@ class _PlannerPageState extends State<PlannerPage> {
         padding: const EdgeInsets.all(16),
         child: Column (
           children: [
-            Expanded(child: MyPlannerTileGridView(plannerList: tileInformation, startingLocation: tileLocations,))
+            Expanded(child: MyPlannerTileGridView(plannerList: tileInformation, routes: tileRoutes,))
           ],
         ),
       )

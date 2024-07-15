@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 class MyPlannerTile extends StatefulWidget {
   final String title;
   final String description;
-  final LatLng startingLocation;
+  final List<LatLng> route;
 
   const MyPlannerTile({
     required this.title,
     required this.description,
-    required this.startingLocation,
+    required this.route,
     super.key
     });
 
@@ -58,7 +59,7 @@ class _PlannerTileState extends State<MyPlannerTile> {
             const SizedBox(height: 20,),
 
             Text(
-              'Location: ${widget.startingLocation.latitude}, ${widget.startingLocation.longitude}',
+              'Start: ${widget.route.first.latitude}, ${widget.route.first.longitude}',
               style: TextStyle(
                 color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.normal,
@@ -66,6 +67,32 @@ class _PlannerTileState extends State<MyPlannerTile> {
                 ),
               textAlign: TextAlign.center,
               ),
+
+              const SizedBox(height: 20,),
+
+              Expanded(
+                child: FlutterMap(
+                    options: MapOptions(
+                      initialCenter: widget.route.first,
+                      initialZoom: 13,
+                    ),
+                    children: [
+                      TileLayer(
+                          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          userAgentPackageName: 'com.example.app',
+                        ),
+                      PolylineLayer(
+                        polylines: [
+                          Polyline(
+                            points: widget.route,
+                            strokeWidth: 4,
+                            color: Colors.blue,
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                )
             ],
           )
         )
