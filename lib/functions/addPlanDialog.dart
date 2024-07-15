@@ -82,6 +82,7 @@ void addPlanDialog(BuildContext context, Function(String, String, List<LatLng>) 
                     options: MapOptions(
                       initialCenter: selectedLocation,
                       initialZoom: 13,
+                      minZoom: 10,
                       onPositionChanged: (position, hasGesture) {
                         setState(() {
                           selectedLocation = position.center;

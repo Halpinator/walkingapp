@@ -3,6 +3,8 @@ import 'package:walkingapp/components/my_drawer.dart';
 import 'package:walkingapp/components/my_submissionlist.dart';
 import 'package:walkingapp/functions/jsonReader.dart';
 
+import '../models/submission.dart';
+
 
 class HomePage extends StatelessWidget {
   @override

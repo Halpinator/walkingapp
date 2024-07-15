@@ -1,18 +1,18 @@
-class Post {
+class Submission {
   final String title;
   final String author;
   final String url;
   final String description;
 
-  Post({
+  Submission({
     required this.title,
     required this.author,
     required this.url,
     required this.description,
   });
 
-  factory Post.fromJson(Map<String, dynamic> json) {
-    return Post(
+  factory Submission.fromJson(Map<String, dynamic> json) {
+    return Submission(
       title: json['title'],
       author: json['author'],
       url: json['url'],
