@@ -33,7 +33,7 @@ Future<Map<String, dynamic>> fetchRoute(LatLng start, LatLng end) async {
 void addPlanDialog(BuildContext context, Function(String, String, List<LatLng>) addTile) {
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
-  LatLng selectedLocation = LatLng(53.4808, -2.2426);
+  LatLng selectedLocation = const LatLng(53.4808, -2.2426);
   double walkLength = 1.0;
   List<LatLng> generatedRoute = [];
   String defaultName = '';
@@ -151,8 +151,8 @@ void addPlanDialog(BuildContext context, Function(String, String, List<LatLng>) 
                   } else {
                     // Show an error message if the route is empty
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('Failed to generate route. Please try again.'),
+                      const SnackBar(
+                        content: Text('Failed to generate route. Please try again.'),
                       ),
                     );
                   }

@@ -7,6 +7,8 @@ import '../models/submission.dart';
 
 
 class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,11 +20,11 @@ class HomePage extends StatelessWidget {
         future: loadSubmissions(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No submissions found'));
+            return const Center(child: Text('No submissions found'));
           } else {
             return SubmissionList(submissions: snapshot.data!);
           }

@@ -21,8 +21,8 @@ class _PlannerPageState extends State<PlannerPage> {
   ];
 
   final List<List<LatLng>> tileRoutes = [
-    [LatLng(53.4808, -2.2426), LatLng(53.4818, -2.2436)],
-    [LatLng(53.4808, -2.2426), LatLng(53.4818, -2.2436)],
+    [const LatLng(53.4808, -2.2426), const LatLng(53.4818, -2.2436)],
+    [const LatLng(53.4808, -2.2426), const LatLng(53.4818, -2.2436)],
   ];
 
   void _addTile(String title, String description,  List<LatLng> route) {

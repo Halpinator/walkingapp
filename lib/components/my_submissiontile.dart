@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:walkingapp/components/my_button.dart';
 import '../models/submission.dart';
 
 class SubmissionTile extends StatelessWidget {

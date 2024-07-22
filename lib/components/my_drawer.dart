@@ -8,8 +8,8 @@ class MyDrawer extends StatelessWidget {
 
   void logout() {
     // get auth service
-    final _auth = AuthService();
-    _auth.signOut();
+    final auth = AuthService();
+    auth.signOut();
   }
 
   @override
@@ -76,7 +76,7 @@ class MyDrawer extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => PlannerPage()
+                        builder: (context) => const PlannerPage()
                         )
                     );
                   },
