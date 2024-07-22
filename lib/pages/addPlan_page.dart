@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -43,25 +42,45 @@ class _AddPlanPageState extends State<AddPlanPage> {
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
   LatLng selectedLocation = const LatLng(53.4808, -2.2426);
-  double walkLength = 1.0;
+  List<LatLng> stopPoints = [];
   List<LatLng> generatedRoute = [];
   String defaultName = '';
   String defaultInstruction = '';
 
   Future<void> updateRoute() async {
-    LatLng endLocation = LatLng(selectedLocation.latitude + walkLength * 0.01, selectedLocation.longitude + walkLength * 0.01);
+    List<LatLng> allPoints = [selectedLocation, ...stopPoints];
+    generatedRoute.clear();
     try {
-      final result = await fetchRoute(selectedLocation, endLocation);
-      setState(() {
-        generatedRoute = result['route'];
-        defaultName = result['name'];
-        defaultInstruction = result['instruction'];
-      });
+      for (int i = 0; i < allPoints.length - 1; i++) {
+        final result = await fetchRoute(allPoints[i], allPoints[i + 1]);
+        generatedRoute.addAll(result['route']);
+        if (i == 0) {
+          defaultName = result['name'];
+          defaultInstruction = result['instruction'];
+        }
+      }
+      setState(() {});
     } catch (e) {
       setState(() {
         generatedRoute = []; // Ensure it's empty in case of error
       });
     }
+  }
+
+  void removePoint(int index) {
+    setState(() {
+      stopPoints.removeAt(index);
+    });
+  }
+
+  void reorderPoints(int oldIndex, int newIndex) {
+    setState(() {
+      if (newIndex > oldIndex) {
+        newIndex -= 1;
+      }
+      final LatLng item = stopPoints.removeAt(oldIndex);
+      stopPoints.insert(newIndex, item);
+    });
   }
 
   @override
@@ -116,23 +135,49 @@ class _AddPlanPageState extends State<AddPlanPage> {
                           size: 40,
                         ),
                       ),
+                      for (LatLng stopPoint in stopPoints)
+                        Marker(
+                          width: 80,
+                          height: 80,
+                          point: stopPoint,
+                          child: const Icon(
+                            Icons.stop_circle,
+                            color: Colors.red,
+                            size: 40,
+                          ),
+                        ),
                     ],
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-            Text("Length of walk: ${walkLength.toStringAsFixed(1)} km"),
-            Slider(
-              min: 0.5,
-              max: 10.0,
-              divisions: 20,
-              value: walkLength,
-              onChanged: (value) {
-                setState(() {
-                  walkLength = value;
-                });
-              }
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    stopPoints.add(selectedLocation);
+                  });
+                },
+                child: const Text('Add Stop Point'),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('Stop Points:'),
+            ReorderableListView(
+              shrinkWrap: true,
+              onReorder: reorderPoints,
+              children: [
+                for (int index = 0; index < stopPoints.length; index++)
+                  ListTile(
+                    key: ValueKey(stopPoints[index]),
+                    title: Text('Point ${index + 1}: ${stopPoints[index].latitude}, ${stopPoints[index].longitude}'),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () => removePoint(index),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 16),
             Center(
