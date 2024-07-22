@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:walkingapp/components/my_plannertilegridview.dart';
-import 'package:walkingapp/functions/addPlanDialog.dart';
+import 'package:walkingapp/pages/addPlan_page.dart';
 
 class PlannerPage extends StatefulWidget {
   const PlannerPage({super.key});
@@ -37,7 +37,13 @@ class _PlannerPageState extends State<PlannerPage> {
     return Scaffold(
       appBar: AppBar(title: const Text("Planner Page")),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => addPlanDialog(context, _addTile),
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => AddPlanPage(addTile: _addTile),
+            ),
+          );
+        },
         splashColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
         child: const Icon(
