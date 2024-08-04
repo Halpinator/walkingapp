@@ -241,13 +241,9 @@ class _AddPlanPageState extends State<AddPlanPage> {
                                 child: GestureDetector(
                                   onTap: () => addPoiToRoute(poi),
                                   child: Icon(
-                                    Icons.local_cafe,
-                                    color: entry.key == 'cafe'
-                                        ? Colors.blue
-                                        : entry.key == 'restaurant'
-                                            ? Colors.green
-                                            : Colors.purple,
-                                    size: 20,
+                                    _getPOIIcon(entry.key),
+                                    color: _getPOIColor(entry.key),
+                                    size: 40,
                                   ),
                                 ),
                               ),
@@ -340,6 +336,33 @@ class _AddPlanPageState extends State<AddPlanPage> {
         ),
       ),
     );
+  }
+
+
+  IconData _getPOIIcon(String type) {
+    switch (type) {
+      case 'cafe':
+        return Icons.local_cafe;
+      case 'restaurant':
+        return Icons.restaurant;
+      case 'hospital':
+        return Icons.local_hospital;
+      default:
+        return Icons.location_on;
+    }
+  }
+
+  Color _getPOIColor(String type) {
+    switch (type) {
+      case 'cafe':
+        return Colors.blue;
+      case 'restaurant':
+        return Colors.green;
+      case 'hospital':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
   }
 }
 
