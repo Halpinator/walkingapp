@@ -29,6 +29,21 @@ Future<Map<String, dynamic>> fetchRoute(LatLng start, LatLng end) async {
   }
 }
 
+Future<List<LatLng>> fetchPOIs() async {
+  final url = Uri.parse(
+      'http://overpass-api.de/api/interpreter?data=[out:json];node[amenity=cafe](53.4808,-2.2426,53.4908,-2.2326);out;');
+
+  final response = await http.get(url);
+
+  if (response.statusCode == 200) {
+    final data = json.decode(response.body);
+    final pois = data['elements'] as List;
+    return pois.map((poi) => LatLng(poi['lat'], poi['lon'])).toList();
+  } else {
+    throw Exception('Failed to load POIs');
+  }
+}
+
 class AddPlanPage extends StatefulWidget {
   final Function(String, String, List<LatLng>) addTile;
 
@@ -46,6 +61,17 @@ class _AddPlanPageState extends State<AddPlanPage> {
   List<LatLng> generatedRoute = [];
   String defaultName = '';
   String defaultInstruction = '';
+  List<LatLng> poiLocations = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchPOIs().then((data) {
+      setState(() {
+        poiLocations = data;
+      });
+    });
+  }
 
   Future<void> updateRoute() async {
     List<LatLng> allPoints = [selectedLocation, ...stopPoints];
@@ -80,6 +106,12 @@ class _AddPlanPageState extends State<AddPlanPage> {
       }
       final LatLng item = stopPoints.removeAt(oldIndex);
       stopPoints.insert(newIndex, item);
+    });
+  }
+
+  void addPoiToRoute(LatLng poi) {
+    setState(() {
+      stopPoints.add(poi);
     });
   }
 
@@ -144,6 +176,21 @@ class _AddPlanPageState extends State<AddPlanPage> {
                             Icons.stop_circle,
                             color: Colors.red,
                             size: 40,
+                          ),
+                        ),
+                        //POI markers
+                         for (LatLng poi in poiLocations)
+                        Marker(
+                          width: 80,
+                          height: 80,
+                          point: poi,
+                          child: GestureDetector(
+                            onTap: () => addPoiToRoute(poi),
+                            child: const Icon(
+                              Icons.local_cafe,
+                              color: Colors.blue,
+                              size: 20,
+                            ),
                           ),
                         ),
                     ],
