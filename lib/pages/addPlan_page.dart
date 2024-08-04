@@ -176,9 +176,11 @@ class _AddPlanPageState extends State<AddPlanPage> {
               controller: titleController,
               decoration: const InputDecoration(labelText: 'Title'),
             ),
+            const SizedBox(height: 8),
             TextField(
               controller: descriptionController,
               decoration: const InputDecoration(labelText: 'Description'),
+              maxLines: 3,
             ),
             const SizedBox(height: 16),
             const Text("Select Starting Point:"),
@@ -225,9 +227,9 @@ class _AddPlanPageState extends State<AddPlanPage> {
                           height: 80,
                           point: stopPoint.location,
                           child: const Icon(
-                            Icons.stop_circle,
+                            Icons.location_pin,
                             color: Colors.red,
-                            size: 40,
+                            size: 30,
                           ),
                         ),
                       if (currentZoom >= 13)
@@ -243,7 +245,7 @@ class _AddPlanPageState extends State<AddPlanPage> {
                                   child: Icon(
                                     _getPOIIcon(entry.key),
                                     color: _getPOIColor(entry.key),
-                                    size: 40,
+                                    size: 20,
                                   ),
                                 ),
                               ),
@@ -338,7 +340,6 @@ class _AddPlanPageState extends State<AddPlanPage> {
     );
   }
 
-
   IconData _getPOIIcon(String type) {
     switch (type) {
       case 'cafe':
@@ -355,7 +356,7 @@ class _AddPlanPageState extends State<AddPlanPage> {
   Color _getPOIColor(String type) {
     switch (type) {
       case 'cafe':
-        return Colors.blue;
+        return Colors.brown;
       case 'restaurant':
         return Colors.green;
       case 'hospital':
