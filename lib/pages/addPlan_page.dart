@@ -29,9 +29,9 @@ Future<Map<String, dynamic>> fetchRoute(LatLng start, LatLng end) async {
   }
 }
 
-Future<List<LatLng>> fetchPOIs() async {
+Future<List<LatLng>> fetchPOIs(String amenity) async {
   final url = Uri.parse(
-      'http://overpass-api.de/api/interpreter?data=[out:json];node[amenity=cafe](53.4808,-2.2426,53.4908,-2.2326);out;');
+      'http://overpass-api.de/api/interpreter?data=[out:json];node[amenity=$amenity](53.3600,-2.4200,53.6300,-2.0500);out;');
 
   final response = await http.get(url);
 
@@ -61,14 +61,22 @@ class _AddPlanPageState extends State<AddPlanPage> {
   List<LatLng> generatedRoute = [];
   String defaultName = '';
   String defaultInstruction = '';
-  List<LatLng> poiLocations = [];
+  double currentZoom = 13;
+  Map<String, bool> poiToggles = {
+    'cafe': true,
+    'restaurant': false,
+    'hospital': false,
+  };
+  Map<String, List<LatLng>> poiLocations = {};
 
   @override
   void initState() {
     super.initState();
-    fetchPOIs().then((data) {
-      setState(() {
-        poiLocations = data;
+    poiToggles.forEach((type, _) {
+      fetchPOIs(type).then((data) {
+        setState(() {
+          poiLocations[type] = data;
+        });
       });
     });
   }
@@ -115,6 +123,12 @@ class _AddPlanPageState extends State<AddPlanPage> {
     });
   }
 
+  void togglePoiType(String type, bool value) {
+    setState(() {
+      poiToggles[type] = value;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -137,8 +151,8 @@ class _AddPlanPageState extends State<AddPlanPage> {
             const SizedBox(height: 16),
             const Text("Select Starting Point:"),
             SizedBox(
-              height: 200,
-              width: double.infinity,
+              height: MediaQuery.of(context).size.width, // Make the map square
+              width: MediaQuery.of(context).size.width,
               child: FlutterMap(
                 options: MapOptions(
                   initialCenter: selectedLocation,
@@ -147,6 +161,7 @@ class _AddPlanPageState extends State<AddPlanPage> {
                   onPositionChanged: (position, hasGesture) {
                     setState(() {
                       selectedLocation = position.center;
+                      currentZoom = position.zoom;
                     });
                   }
                 ),
@@ -179,25 +194,48 @@ class _AddPlanPageState extends State<AddPlanPage> {
                           ),
                         ),
                         //POI markers
-                         for (LatLng poi in poiLocations)
-                        Marker(
-                          width: 80,
-                          height: 80,
-                          point: poi,
-                          child: GestureDetector(
-                            onTap: () => addPoiToRoute(poi),
-                            child: const Icon(
-                              Icons.local_cafe,
-                              color: Colors.blue,
-                              size: 20,
-                            ),
-                          ),
-                        ),
+                        if (currentZoom >= 13)
+                        for (var entry in poiToggles.entries)
+                          if (entry.value)
+                            for (LatLng poi in poiLocations[entry.key] ?? [])
+                              Marker(
+                                width: 80,
+                                height: 80,
+                                point: poi,
+                                child: GestureDetector(
+                                  onTap: () => addPoiToRoute(poi),
+                                  child: Icon(
+                                    Icons.local_cafe,
+                                    color: entry.key == 'cafe'
+                                        ? Colors.blue
+                                        : entry.key == 'restaurant'
+                                            ? Colors.green
+                                            : Colors.purple,
+                                    size: 20,
+                                  ),
+                                ),
+                              ),
                     ],
                   ),
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+            const Text('POI Types:'),
+            Column(
+              children: poiToggles.keys.map((type) {
+                return CheckboxListTile(
+                  title: Text(type.toUpperCase()),
+                  value: poiToggles[type],
+                  onChanged: (bool? value) {
+                    if (value != null) {
+                      togglePoiType(type, value);
+                    }
+                  },
+                );
+              }).toList(),
+            ),
+
             const SizedBox(height: 16),
             Center(
               child: ElevatedButton(
