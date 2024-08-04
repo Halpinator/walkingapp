@@ -6,6 +6,18 @@ import 'package:http/http.dart' as http;
 
 const String apiKey = "5b3ce3597851110001cf62481e0f688e55fc43cd9bd1f5807ec3d81a";
 
+class POI {
+  final LatLng location;
+  final String name;
+  final String description;
+
+  POI({
+    required this.location,
+    required this.name,
+    required this.description,
+  });
+}
+
 Future<Map<String, dynamic>> fetchRoute(LatLng start, LatLng end) async {
   final url = Uri.parse(
       'https://api.openrouteservice.org/v2/directions/foot-walking?api_key=$apiKey&start=${start.longitude},${start.latitude}&end=${end.longitude},${end.latitude}');
@@ -29,7 +41,7 @@ Future<Map<String, dynamic>> fetchRoute(LatLng start, LatLng end) async {
   }
 }
 
-Future<List<LatLng>> fetchPOIs(String amenity) async {
+Future<List<POI>> fetchPOIs(String amenity) async {
   final url = Uri.parse(
       'http://overpass-api.de/api/interpreter?data=[out:json];node[amenity=$amenity](53.3600,-2.4200,53.6300,-2.0500);out;');
 
@@ -38,7 +50,15 @@ Future<List<LatLng>> fetchPOIs(String amenity) async {
   if (response.statusCode == 200) {
     final data = json.decode(response.body);
     final pois = data['elements'] as List;
-    return pois.map((poi) => LatLng(poi['lat'], poi['lon'])).toList();
+    return pois.map((poi) {
+      final name = poi['tags']?['name'] ?? 'Unnamed $amenity';
+      final description = poi['tags']?['description'] ?? 'No description available';
+      return POI(
+        location: LatLng(poi['lat'], poi['lon']),
+        name: name,
+        description: description,
+      );
+    }).toList();
   } else {
     throw Exception('Failed to load POIs');
   }
@@ -56,18 +76,19 @@ class AddPlanPage extends StatefulWidget {
 class _AddPlanPageState extends State<AddPlanPage> {
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
-  LatLng selectedLocation = const LatLng(53.4808, -2.2426);
-  List<LatLng> stopPoints = [];
+  LatLng selectedLocation = const LatLng(53.4808, -2.2426); // Center of Greater Manchester
+  List<POI> stopPoints = [];
   List<LatLng> generatedRoute = [];
   String defaultName = '';
   String defaultInstruction = '';
   double currentZoom = 13;
+  bool loopBack = false;
   Map<String, bool> poiToggles = {
     'cafe': true,
     'restaurant': false,
     'hospital': false,
   };
-  Map<String, List<LatLng>> poiLocations = {};
+  Map<String, List<POI>> poiLocations = {};
 
   @override
   void initState() {
@@ -82,9 +103,12 @@ class _AddPlanPageState extends State<AddPlanPage> {
   }
 
   Future<void> updateRoute() async {
-    List<LatLng> allPoints = [selectedLocation, ...stopPoints];
-    generatedRoute.clear();
     try {
+      List<LatLng> allPoints = [selectedLocation, ...stopPoints.map((poi) => poi.location)];
+      if (loopBack) {
+        allPoints.add(selectedLocation);
+      }
+      generatedRoute.clear();
       for (int i = 0; i < allPoints.length - 1; i++) {
         final result = await fetchRoute(allPoints[i], allPoints[i + 1]);
         generatedRoute.addAll(result['route']);
@@ -93,11 +117,19 @@ class _AddPlanPageState extends State<AddPlanPage> {
           defaultInstruction = result['instruction'];
         }
       }
+      if (generatedRoute.isEmpty) {
+        throw Exception('No route generated');
+      }
       setState(() {});
     } catch (e) {
       setState(() {
         generatedRoute = []; // Ensure it's empty in case of error
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to generate route: ${e.toString()}'),
+        ),
+      );
     }
   }
 
@@ -112,12 +144,12 @@ class _AddPlanPageState extends State<AddPlanPage> {
       if (newIndex > oldIndex) {
         newIndex -= 1;
       }
-      final LatLng item = stopPoints.removeAt(oldIndex);
+      final POI item = stopPoints.removeAt(oldIndex);
       stopPoints.insert(newIndex, item);
     });
   }
 
-  void addPoiToRoute(LatLng poi) {
+  void addPoiToRoute(POI poi) {
     setState(() {
       stopPoints.add(poi);
     });
@@ -158,12 +190,17 @@ class _AddPlanPageState extends State<AddPlanPage> {
                   initialCenter: selectedLocation,
                   initialZoom: 13,
                   minZoom: 10,
-                  onPositionChanged: (position, hasGesture) {
+                  onTap: (tapPosition, point) {
                     setState(() {
-                      selectedLocation = position.center;
-                      currentZoom = position.zoom;
+                      selectedLocation = point;
                     });
-                  }
+                  },
+                  onPositionChanged: (mapPosition, hasGesture) {
+                    setState(() {
+                      selectedLocation = mapPosition.center;
+                      currentZoom = mapPosition.zoom;
+                    });
+                  },
                 ),
                 children: [
                   TileLayer(
@@ -182,26 +219,25 @@ class _AddPlanPageState extends State<AddPlanPage> {
                           size: 40,
                         ),
                       ),
-                      for (LatLng stopPoint in stopPoints)
+                      for (POI stopPoint in stopPoints)
                         Marker(
                           width: 80,
                           height: 80,
-                          point: stopPoint,
+                          point: stopPoint.location,
                           child: const Icon(
                             Icons.stop_circle,
                             color: Colors.red,
                             size: 40,
                           ),
                         ),
-                        //POI markers
-                        if (currentZoom >= 13)
+                      if (currentZoom >= 13)
                         for (var entry in poiToggles.entries)
                           if (entry.value)
-                            for (LatLng poi in poiLocations[entry.key] ?? [])
+                            for (POI poi in poiLocations[entry.key] ?? [])
                               Marker(
                                 width: 80,
                                 height: 80,
-                                point: poi,
+                                point: poi.location,
                                 child: GestureDetector(
                                   onTap: () => addPoiToRoute(poi),
                                   child: Icon(
@@ -221,11 +257,26 @@ class _AddPlanPageState extends State<AddPlanPage> {
               ),
             ),
             const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Loop back to starting point'),
+                Switch(
+                  value: loopBack,
+                  onChanged: (value) {
+                    setState(() {
+                      loopBack = value;
+                    });
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
             const Text('POI Types:'),
             Column(
               children: poiToggles.keys.map((type) {
                 return CheckboxListTile(
-                  title: Text(type.toUpperCase()),
+                  title: Text(type.capitalize()),
                   value: poiToggles[type],
                   onChanged: (bool? value) {
                     if (value != null) {
@@ -235,13 +286,12 @@ class _AddPlanPageState extends State<AddPlanPage> {
                 );
               }).toList(),
             ),
-
             const SizedBox(height: 16),
             Center(
               child: ElevatedButton(
                 onPressed: () {
                   setState(() {
-                    stopPoints.add(selectedLocation);
+                    stopPoints.add(POI(location: selectedLocation, name: 'Custom Point', description: 'User selected point'));
                   });
                 },
                 child: const Text('Add Stop Point'),
@@ -256,7 +306,8 @@ class _AddPlanPageState extends State<AddPlanPage> {
                 for (int index = 0; index < stopPoints.length; index++)
                   ListTile(
                     key: ValueKey(stopPoints[index]),
-                    title: Text('Point ${index + 1}: ${stopPoints[index].latitude}, ${stopPoints[index].longitude}'),
+                    title: Text('Point ${index + 1}: ${stopPoints[index].name}'),
+                    subtitle: Text(stopPoints[index].description),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete),
                       onPressed: () => removePoint(index),
@@ -289,5 +340,11 @@ class _AddPlanPageState extends State<AddPlanPage> {
         ),
       ),
     );
+  }
+}
+
+extension StringExtension on String {
+  String capitalize() {
+    return "${this[0].toUpperCase()}${substring(1)}";
   }
 }
