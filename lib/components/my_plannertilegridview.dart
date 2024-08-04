@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:walkingapp/pages/addPlan_page.dart';
 import 'package:walkingapp/components/my_plannertile.dart';
 
 class MyPlannerTileGridView extends StatefulWidget {
-  List<List<String>> plannerList;
-  List<List<LatLng>> routes;
+  final List<Plan> plans;
 
   MyPlannerTileGridView({
-    required this.plannerList,
-    required this.routes,
+    required this.plans,
     super.key,
-    });
+  });
 
   @override
   State<MyPlannerTileGridView> createState() => _MyPlannerTileGridViewState();
@@ -21,16 +19,14 @@ class _MyPlannerTileGridViewState extends State<MyPlannerTileGridView> {
   Widget build(BuildContext context) {
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 1,
+        crossAxisCount: 2,
         mainAxisSpacing: 10,
         crossAxisSpacing: 10,
       ),
-      itemCount: widget.plannerList.length,
+      itemCount: widget.plans.length,
       itemBuilder: (BuildContext context, int index) {
         return MyPlannerTile(
-          title: widget.plannerList[index][0],
-          description:  widget.plannerList[index][1],
-          route: widget.routes[index],
+          plan: widget.plans[index],
         );
       },
     );

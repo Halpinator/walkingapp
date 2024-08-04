@@ -18,6 +18,22 @@ class POI {
   });
 }
 
+class Plan {
+  final String title;
+  final String description;
+  final List<POI> points;
+  final List<String> instructions;
+  final List<LatLng> generatedRoute;
+
+  Plan({
+    required this.title,
+    required this.description,
+    required this.points,
+    required this.instructions,
+    required this.generatedRoute,
+  });
+}
+
 Future<Map<String, dynamic>> fetchRoute(LatLng start, LatLng end) async {
   final url = Uri.parse(
       'https://api.openrouteservice.org/v2/directions/foot-walking?api_key=$apiKey&start=${start.longitude},${start.latitude}&end=${end.longitude},${end.latitude}');
@@ -28,11 +44,14 @@ Future<Map<String, dynamic>> fetchRoute(LatLng start, LatLng end) async {
     final data = json.decode(response.body);
     final geometry = data['features'][0]['geometry']['coordinates'] as List;
     final route = geometry.map((coord) => LatLng(coord[1], coord[0])).toList();
-    final firstStep = data['features'][0]['properties']['segments'][0]['steps'][0];
+    final steps = data['features'][0]['properties']['segments'][0]['steps'] as List;
+    final instructions = steps.map((step) => step['instruction'] as String).toList();
+    final firstStep = steps[0];
     final firstName = firstStep['name'];
     final firstInstruction = firstStep['instruction'];
     return {
       'route': route,
+      'instructions': instructions,
       'name': firstName,
       'instruction': firstInstruction,
     };
@@ -65,7 +84,7 @@ Future<List<POI>> fetchPOIs(String amenity) async {
 }
 
 class AddPlanPage extends StatefulWidget {
-  final Function(String, String, List<LatLng>) addTile;
+  final Function(Plan) addTile;
 
   AddPlanPage({required this.addTile});
 
@@ -79,6 +98,7 @@ class _AddPlanPageState extends State<AddPlanPage> {
   LatLng selectedLocation = const LatLng(53.4808, -2.2426); // Center of Greater Manchester
   List<POI> stopPoints = [];
   List<LatLng> generatedRoute = [];
+  List<String> generatedInstructions = [];
   String defaultName = '';
   String defaultInstruction = '';
   double currentZoom = 13;
@@ -109,13 +129,15 @@ class _AddPlanPageState extends State<AddPlanPage> {
         allPoints.add(selectedLocation);
       }
       generatedRoute.clear();
+      generatedInstructions.clear();
       for (int i = 0; i < allPoints.length - 1; i++) {
         final result = await fetchRoute(allPoints[i], allPoints[i + 1]);
-        generatedRoute.addAll(result['route']);
         if (i == 0) {
           defaultName = result['name'];
           defaultInstruction = result['instruction'];
         }
+        generatedRoute.addAll(result['route']);
+        generatedInstructions.addAll(result['instructions']);
       }
       if (generatedRoute.isEmpty) {
         throw Exception('No route generated');
@@ -321,7 +343,14 @@ class _AddPlanPageState extends State<AddPlanPage> {
                   if (generatedRoute.isNotEmpty) {
                     final title = titleController.text.isEmpty ? defaultName : titleController.text;
                     final description = descriptionController.text.isEmpty ? defaultInstruction : descriptionController.text;
-                    widget.addTile(title, description, generatedRoute);
+                    final plan = Plan(
+                      title: title,
+                      description: description,
+                      points: stopPoints,
+                      instructions: generatedInstructions,
+                      generatedRoute: generatedRoute,
+                    );
+                    widget.addTile(plan);
                     Navigator.of(context).pop();
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(

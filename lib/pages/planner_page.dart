@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:walkingapp/components/my_plannertilegridview.dart';
-import 'package:walkingapp/pages/addPlan_page.dart';
+import 'addPlan_page.dart';
 
 class PlannerPage extends StatefulWidget {
   const PlannerPage({super.key});
@@ -11,24 +10,11 @@ class PlannerPage extends StatefulWidget {
 }
 
 class _PlannerPageState extends State<PlannerPage> {
-  TextEditingController titleController = TextEditingController();
+  List<Plan> plans = [];
 
-  TextEditingController descriptionController = TextEditingController();
-
-  final List<List<String>> tileInformation = [
-    ["Hello", "Hello"],
-    ["David", "Halpin"],
-  ];
-
-  final List<List<LatLng>> tileRoutes = [
-    [const LatLng(53.4808, -2.2426), const LatLng(53.4818, -2.2436)],
-    [const LatLng(53.4808, -2.2426), const LatLng(53.4818, -2.2436)],
-  ];
-
-  void _addTile(String title, String description,  List<LatLng> route) {
+  void _addTile(Plan plan) {
     setState(() {
-      tileInformation.add([title, description]);
-      tileRoutes.add(route);
+      plans.add(plan);
     });
   }
 
@@ -49,16 +35,18 @@ class _PlannerPageState extends State<PlannerPage> {
         child: const Icon(
           Icons.add,
           size: 50,
-          ),
         ),
-      body: Padding (
+      ),
+      body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column (
+        child: Column(
           children: [
-            Expanded(child: MyPlannerTileGridView(plannerList: tileInformation, routes: tileRoutes,))
+            Expanded(
+              child: MyPlannerTileGridView(plans: plans),
+            ),
           ],
         ),
-      )
+      ),
     );
   }
 }
