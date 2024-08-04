@@ -10,99 +10,117 @@ class PlanDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    const lightTileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+    final darkTileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png';
+
+
+
+
+
     return Scaffold(
       appBar: AppBar(
         title: Text(plan.title),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.navigation),
+            onPressed: () {
+              // Implement navigation functionality here
+            },
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                plan.description,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+      body: Column(
+        children: [
+          Expanded(
+            flex: 4,
+            child: FlutterMap(
+              options: MapOptions(
+                initialCenter: plan.points.first.location,
+                initialZoom: 13,
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'Route Map:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(
-                height: 400,
-                width: double.infinity,
-                child: FlutterMap(
-                  options: MapOptions(
-                    initialCenter: plan.points.first.location,
-                    initialZoom: 13,
-                  ),
+              children: [
+                TileLayer(
+                  urlTemplate: isDarkMode ? darkTileUrl : lightTileUrl,
+                  userAgentPackageName: 'com.example.app',
+                ),
+                PolylineLayer(
+                  polylines: [
+                    Polyline(
+                      points: plan.generatedRoute,
+                      strokeWidth: 4.0,
+                      color: Colors.blue,
+                    ),
+                  ],
+                ),
+                MarkerLayer(
+                  markers: plan.points.map((poi) {
+                    return Marker(
+                      width: 80,
+                      height: 80,
+                      point: poi.location,
+                      child: Icon(
+                        _getPOIIcon(poi.name),
+                        color: _getPOIColor(poi.name),
+                        size: 40,
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.example.app',
+                    const Text(
+                      'Points of Interest:',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
-                    PolylineLayer(
-                      polylines: [
-                        Polyline(
-                          points: plan.generatedRoute,
-                          strokeWidth: 4.0,
-                          color: Colors.blue,
-                        ),
-                      ],
-                    ),
-                    MarkerLayer(
-                      markers: plan.points.map((poi) {
-                        return Marker(
-                          width: 80,
-                          height: 80,
-                          point: poi.location,
-                          child: Icon(
+                    ...plan.points.map((poi) {
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        child: ListTile(
+                          title: Text(poi.name),
+                          subtitle: Text(poi.description),
+                          leading: Icon(
                             _getPOIIcon(poi.name),
                             color: _getPOIColor(poi.name),
                             size: 40,
                           ),
-                        );
-                      }).toList(),
+                        ),
+                      );
+                    }).toList(),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Navigation Instructions:',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
+                    ...plan.instructions.map((instruction) {
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        child: ListTile(
+                          title: Text(instruction),
+                        ),
+                      );
+                    }).toList(),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'Points of Interest:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              ...plan.points.map((poi) {
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  child: ListTile(
-                    title: Text(poi.name),
-                    subtitle: Text(poi.description),
-                    leading: Icon(
-                      _getPOIIcon(poi.name),
-                      color: _getPOIColor(poi.name),
-                      size: 40,
-                    ),
-                  ),
-                );
-              }).toList(),
-              const SizedBox(height: 16),
-              const Text(
-                'Navigation Instructions:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              ...plan.instructions.map((instruction) {
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  child: ListTile(
-                    title: Text(instruction),
-                  ),
-                );
-              }).toList(),
-            ],
+            ),
           ),
-        ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.navigation),
+        onPressed: () {
+          // Implement navigation functionality here
+        },
       ),
     );
   }

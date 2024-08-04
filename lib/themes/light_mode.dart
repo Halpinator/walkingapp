@@ -20,7 +20,9 @@ ThemeData lightMode = ThemeData(
     secondary: Colors.cyan.shade600, // Vibrant cyan for secondary elements
     tertiary: Colors.grey.shade300, // Soft gray for tertiary elements
     inversePrimary: Colors.cyan.shade900, // Dark cyan for elements on dark backgrounds
-  )
+  ),
+
+  brightness: Brightness.light,
 );
 
 /*

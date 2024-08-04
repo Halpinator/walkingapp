@@ -360,7 +360,7 @@ class _AddPlanPageState extends State<AddPlanPage> {
                     );
                   }
                 },
-                child: const Text('Add'),
+                child: const Text('Generate Route'),
               ),
             ),
           ],

@@ -8,4 +8,6 @@ ThemeData darkMode = ThemeData(
     tertiary: Colors.black, 
     inversePrimary: Colors.white, 
   ),
+
+   brightness: Brightness.dark, 
 );
