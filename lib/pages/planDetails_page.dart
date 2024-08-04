@@ -11,16 +11,24 @@ class PlanDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(plan.title)),
+      appBar: AppBar(
+        title: Text(plan.title),
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(plan.description),
+              Text(
+                plan.description,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+              ),
               const SizedBox(height: 16),
-              const Text('Route Map:'),
+              const Text(
+                'Route Map:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
               SizedBox(
                 height: 400,
                 width: double.infinity,
@@ -61,18 +69,37 @@ class PlanDetailsPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text('Points of Interest:'),
-              for (var poi in plan.points)
-                ListTile(
-                  title: Text(poi.name),
-                  subtitle: Text(poi.description),
-                ),
+              const Text(
+                'Points of Interest:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              ...plan.points.map((poi) {
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  child: ListTile(
+                    title: Text(poi.name),
+                    subtitle: Text(poi.description),
+                    leading: Icon(
+                      _getPOIIcon(poi.name),
+                      color: _getPOIColor(poi.name),
+                      size: 40,
+                    ),
+                  ),
+                );
+              }).toList(),
               const SizedBox(height: 16),
-              const Text('Navigation Instructions:'),
-              for (var instruction in plan.instructions)
-                ListTile(
-                  title: Text(instruction),
-                ),
+              const Text(
+                'Navigation Instructions:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              ...plan.instructions.map((instruction) {
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  child: ListTile(
+                    title: Text(instruction),
+                  ),
+                );
+              }).toList(),
             ],
           ),
         ),
