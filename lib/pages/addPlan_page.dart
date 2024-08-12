@@ -7,6 +7,7 @@ import 'package:walkingapp/components/my_webcamView.dart';
 
 const String apiKey = "5b3ce3597851110001cf62481e0f688e55fc43cd9bd1f5807ec3d81a";
 
+// Model Classes
 class POI {
   final LatLng location;
   final String name;
@@ -35,6 +36,7 @@ class Plan {
   });
 }
 
+// Network Functions
 Future<Map<String, dynamic>> fetchRoute(LatLng start, LatLng end) async {
   final url = Uri.parse(
       'https://api.openrouteservice.org/v2/directions/foot-walking?api_key=$apiKey&start=${start.longitude},${start.latitude}&end=${end.longitude},${end.latitude}');
@@ -48,13 +50,11 @@ Future<Map<String, dynamic>> fetchRoute(LatLng start, LatLng end) async {
     final steps = data['features'][0]['properties']['segments'][0]['steps'] as List;
     final instructions = steps.map((step) => step['instruction'] as String).toList();
     final firstStep = steps[0];
-    final firstName = firstStep['name'];
-    final firstInstruction = firstStep['instruction'];
     return {
       'route': route,
       'instructions': instructions,
-      'name': firstName,
-      'instruction': firstInstruction,
+      'name': firstStep['name'],
+      'instruction': firstStep['instruction'],
     };
   } else {
     throw Exception('Failed to load route');
@@ -62,35 +62,36 @@ Future<Map<String, dynamic>> fetchRoute(LatLng start, LatLng end) async {
 }
 
 Future<List<POI>> fetchPOIs(String amenityType) async {
-  String overpassQuery = '';
+  String overpassQuery;
+
   // Adjusting the query based on the type of amenity
   switch (amenityType) {
     case 'park':
-      overpassQuery = '[leisure=park]';  // Parks are often leisure-focused.
+      overpassQuery = '[leisure=park]';
       break;
     case 'picnic_site':
-      overpassQuery = '[tourism=picnic_site]';  // Specific tag for picnic sites.
+      overpassQuery = '[tourism=picnic_site]';
       break;
     case 'viewpoint':
-      overpassQuery = '[tourism=viewpoint]';  // For scenic viewpoints.
+      overpassQuery = '[tourism=viewpoint]';
       break;
     case 'historic_site':
-      overpassQuery = '[historic=site]';  // For sites of historical importance.
+      overpassQuery = '[historic=site]';
       break;
     case 'nature_reserve':
-      overpassQuery = '[leisure=nature_reserve]';  // Areas dedicated to preserving natural habitats.
+      overpassQuery = '[leisure=nature_reserve]';
       break;
     case 'trail':
-      overpassQuery = '[route=hiking]';  // Hiking trails are specific routes designed for walking.
+      overpassQuery = '[route=hiking]';
       break;
     case 'waterfall':
-      overpassQuery = '[waterway=waterfall]';  // Natural waterfalls.
+      overpassQuery = '[waterway=waterfall]';
       break;
     case 'campsite':
-      overpassQuery = '[tourism=camp_site]';  // Places designated for camping.
+      overpassQuery = '[tourism=camp_site]';
       break;
     default:
-      overpassQuery = '[tourism=$amenityType]';  // Default fallback to tourism tag.
+      overpassQuery = '[tourism=$amenityType]';
       break;
   }
 
@@ -116,18 +117,19 @@ Future<List<POI>> fetchPOIs(String amenityType) async {
   }
 }
 
+// Main Widget
 class AddPlanPage extends StatefulWidget {
   final Function(Plan) addTile;
 
-  AddPlanPage({required this.addTile});
+  const AddPlanPage({required this.addTile});
 
   @override
   _AddPlanPageState createState() => _AddPlanPageState();
 }
 
 class _AddPlanPageState extends State<AddPlanPage> {
-  TextEditingController titleController = TextEditingController();
-  TextEditingController descriptionController = TextEditingController();
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
   LatLng selectedLocation = const LatLng(53.4808, -2.2426); // Center of Greater Manchester
   List<POI> stopPoints = [];
   List<LatLng> generatedRoute = [];
@@ -136,7 +138,7 @@ class _AddPlanPageState extends State<AddPlanPage> {
   String defaultInstruction = '';
   double currentZoom = 13;
   bool loopBack = false;
-  bool isMapFullScreen = false; // Variable to track full-screen state
+  bool isMapFullScreen = false;
   Map<String, bool> poiToggles = {
     'park': false,
     'picnic_site': false,
@@ -153,8 +155,11 @@ class _AddPlanPageState extends State<AddPlanPage> {
   @override
   void initState() {
     super.initState();
+    _fetchAllPOIs();
+    _initializeWebcamPOIs();
+  }
 
-    // Fetch POIs for other types
+  void _fetchAllPOIs() {
     poiToggles.forEach((type, _) {
       if (type != 'webcam') {
         fetchPOIs(type).then((data) {
@@ -164,20 +169,20 @@ class _AddPlanPageState extends State<AddPlanPage> {
         });
       }
     });
+  }
 
-    // Add manually defined webcam POIs
+  void _initializeWebcamPOIs() {
     poiLocations['webcam'] = [
       POI(
-        location: LatLng(53.593349, -1.800309), // Example coordinates
+        location: LatLng(53.593349, -1.800309),
         name: 'Peak District Webcam 1',
         description: 'Live feed from Peak District 1',
       ),
       POI(
-        location: LatLng(53.4808, -2.2426), // Another example
+        location: LatLng(53.4808, -2.2426),
         name: 'Peak District Webcam 2',
         description: 'Live feed from Peak District 2',
       ),
-      // Add more webcams as needed
     ];
   }
 
@@ -187,8 +192,10 @@ class _AddPlanPageState extends State<AddPlanPage> {
       if (loopBack) {
         allPoints.add(selectedLocation);
       }
+
       generatedRoute.clear();
       generatedInstructions.clear();
+
       for (int i = 0; i < allPoints.length - 1; i++) {
         final result = await fetchRoute(allPoints[i], allPoints[i + 1]);
         if (i == 0) {
@@ -198,20 +205,42 @@ class _AddPlanPageState extends State<AddPlanPage> {
         generatedRoute.addAll(result['route']);
         generatedInstructions.addAll(result['instructions']);
       }
+
       if (generatedRoute.isEmpty) {
         throw Exception('No route generated');
       }
+
       setState(() {});
     } catch (e) {
       setState(() {
-        generatedRoute = []; // Ensure it's empty in case of error
+        generatedRoute = [];
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to generate route: ${e.toString()}'),
-        ),
-      );
+      _showErrorSnackBar('Failed to generate route: ${e.toString()}');
     }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+      ),
+    );
+  }
+
+  void addStopPoint() {
+    setState(() {
+      stopPoints.add(POI(
+        location: selectedLocation,
+        name: 'Custom Point',
+        description: 'User selected point',
+      ));
+    });
+  }
+
+  void addPoiToRoute(POI poi) {
+    setState(() {
+      stopPoints.add(poi);
+    });
   }
 
   void removePoint(int index) {
@@ -222,17 +251,9 @@ class _AddPlanPageState extends State<AddPlanPage> {
 
   void reorderPoints(int oldIndex, int newIndex) {
     setState(() {
-      if (newIndex > oldIndex) {
-        newIndex -= 1;
-      }
+      if (newIndex > oldIndex) newIndex -= 1;
       final POI item = stopPoints.removeAt(oldIndex);
       stopPoints.insert(newIndex, item);
-    });
-  }
-
-  void addPoiToRoute(POI poi) {
-    setState(() {
-      stopPoints.add(poi);
     });
   }
 
@@ -242,19 +263,107 @@ class _AddPlanPageState extends State<AddPlanPage> {
     });
   }
 
+  IconData _getPOIIcon(String type) {
+    switch (type) {
+      case 'park':
+        return Icons.local_florist;
+      case 'picnic_site':
+        return Icons.food_bank;
+      case 'viewpoint':
+        return Icons.remove_red_eye;
+      case 'historic_site':
+        return Icons.account_balance;
+      case 'nature_reserve':
+        return Icons.eco;
+      case 'waterfall':
+        return Icons.waterfall_chart;
+      case 'campsite':
+        return Icons.forest;
+      case 'trail':
+        return Icons.terrain;
+      case 'webcam':
+        return Icons.camera;
+      default:
+        return Icons.location_on;
+    }
+  }
+
+  Color _getPOIColor(String type) {
+    switch (type) {
+      case 'park':
+        return Colors.green[700]!;
+      case 'picnic_site':
+        return Colors.amber[800]!;
+      case 'viewpoint':
+        return Colors.deepPurple[400]!;
+      case 'historic_site':
+        return Colors.brown[600]!;
+      case 'nature_reserve':
+        return Colors.lightGreen[800]!;
+      case 'waterfall':
+        return Colors.blue[300]!;
+      case 'campsite':
+        return Colors.deepOrange[700]!;
+      case 'trail':
+        return Colors.brown[400]!;
+      default:
+        return Colors.grey[600]!;
+    }
+  }
+
+  Widget buildPOIToggles() {
+    return GridView.count(
+      shrinkWrap: true,
+      crossAxisCount: 2,
+      crossAxisSpacing: 8.0,
+      mainAxisSpacing: 8.0,
+      childAspectRatio: 4,
+      children: poiToggles.keys.map((type) {
+        return Row(
+          children: [
+            Checkbox(
+              value: poiToggles[type],
+              onChanged: (bool? value) {
+                if (value != null) togglePoiType(type, value);
+              },
+            ),
+            Text(type.capitalize()),
+          ],
+        );
+      }).toList(),
+    );
+  }
+
+  Widget buildStopPointsList() {
+    return ReorderableListView(
+      shrinkWrap: true,
+      onReorder: reorderPoints,
+      children: stopPoints.map((poi) {
+        int index = stopPoints.indexOf(poi);
+        return ListTile(
+          key: ValueKey(poi),
+          title: Text('Point ${index + 1}: ${poi.name}'),
+          subtitle: Text(poi.description),
+          trailing: IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () => removePoint(index),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add Plan Information'),
-      ),
+      appBar: AppBar(title: const Text('Add Plan Information')),
       body: Stack(
         children: [
           SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
+              children: [
                 TextField(
                   controller: titleController,
                   decoration: const InputDecoration(labelText: 'Title'),
@@ -270,8 +379,8 @@ class _AddPlanPageState extends State<AddPlanPage> {
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   height: isMapFullScreen
-                      ? MediaQuery.of(context).size.height
-                      : MediaQuery.of(context).size.width,
+                      ? MediaQuery.of(context).size.height * 0.8
+                      : MediaQuery.of(context).size.width * 0.8,
                   width: MediaQuery.of(context).size.width,
                   child: FlutterMap(
                     options: MapOptions(
@@ -333,8 +442,7 @@ class _AddPlanPageState extends State<AddPlanPage> {
                                             context,
                                             MaterialPageRoute(
                                               builder: (context) => WebcamView(
-                                                url:
-                                                    'https://www.maccinfo.com/WebcamCat/Webcamn200.jpg',
+                                                url: 'https://www.maccinfo.com/WebcamCat/Webcamn200.jpg',
                                                 title: poi.name,
                                               ),
                                             ),
@@ -355,68 +463,29 @@ class _AddPlanPageState extends State<AddPlanPage> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Loop back to starting point'),
-                    Switch(
-                      value: loopBack,
-                      onChanged: (value) {
-                        setState(() {
-                          loopBack = value;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                const Text('POI Types:'),
-                Column(
-                  children: poiToggles.keys.map((type) {
-                    return CheckboxListTile(
-                      title: Text(type.capitalize()),
-                      value: poiToggles[type],
-                      onChanged: (bool? value) {
-                        if (value != null) {
-                          togglePoiType(type, value);
-                        }
-                      },
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 Center(
                   child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        stopPoints.add(POI(
-                            location: selectedLocation,
-                            name: 'Custom Point',
-                            description: 'User selected point'));
-                      });
-                    },
+                    onPressed: addStopPoint,
                     child: const Text('Add Stop Point'),
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text('Stop Points:'),
-                ReorderableListView(
-                  shrinkWrap: true,
-                  onReorder: reorderPoints,
-                  children: [
-                    for (int index = 0; index < stopPoints.length; index++)
-                      ListTile(
-                        key: ValueKey(stopPoints[index]),
-                        title: Text('Point ${index + 1}: ${stopPoints[index].name}'),
-                        subtitle: Text(stopPoints[index].description),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () => removePoint(index),
-                        ),
-                      ),
-                  ],
+                const Text('Loop back to starting point'),
+                Switch(
+                  value: loopBack,
+                  onChanged: (value) {
+                    setState(() {
+                      loopBack = value;
+                    });
+                  },
                 ),
+                const SizedBox(height: 16),
+                const Text('POI Types:'),
+                buildPOIToggles(),
+                const SizedBox(height: 16),
+                const Text('Stop Points:'),
+                buildStopPointsList(),
                 const SizedBox(height: 16),
                 Center(
                   child: ElevatedButton(
@@ -439,11 +508,7 @@ class _AddPlanPageState extends State<AddPlanPage> {
                         widget.addTile(plan);
                         Navigator.of(context).pop();
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Failed to generate route. Please try again.'),
-                          ),
-                        );
+                        _showErrorSnackBar('Failed to generate route. Please try again.');
                       }
                     },
                     child: const Text('Generate Route'),
@@ -453,8 +518,8 @@ class _AddPlanPageState extends State<AddPlanPage> {
             ),
           ),
           Positioned(
-            bottom: 16, // Move to the bottom of the screen
-            right: 16,  // Keep it on the right side
+            bottom: 16,
+            right: 16,
             child: FloatingActionButton(
               onPressed: () {
                 setState(() {
@@ -467,54 +532,6 @@ class _AddPlanPageState extends State<AddPlanPage> {
         ],
       ),
     );
-  }
-
-  IconData _getPOIIcon(String type) {
-    switch (type) {
-      case 'park':
-        return Icons.local_florist; // Changed to more explicitly represent nature
-      case 'picnic_site':
-        return Icons.food_bank; // Using a more specific icon if available
-      case 'viewpoint':
-        return Icons.remove_red_eye; // Suggestive of viewing or sightseeing
-      case 'historic_site':
-        return Icons.account_balance; // Represents historical buildings or sites
-      case 'nature_reserve':
-        return Icons.eco; // Represents environmental and ecological sites
-      case 'waterfall':
-        return Icons.waterfall_chart; // Iconic representation of waterfalls
-      case 'campsite':
-        return Icons.forest; // Ideal for campsites
-      case 'trail':
-        return Icons.terrain; // Represents rough terrains on hiking trails
-      case 'webcam':
-        return Icons.camera; // Represents rough terrains on hiking trails
-      default:
-        return Icons.location_on; // Generic location icon for unspecified types
-    }
-  }
-
-  Color _getPOIColor(String type) {
-    switch (type) {
-      case 'park':
-        return Colors.green[700]!; // Darker shade of green for better visibility
-      case 'picnic_site':
-        return Colors.amber[800]!; // Deeper orange for a warm, inviting look
-      case 'viewpoint':
-        return Colors.deepPurple[400]!; // A vibrant purple to denote special spots
-      case 'historic_site':
-        return Colors.brown[600]!; // Brown reflects the earthy, historical essence
-      case 'nature_reserve':
-        return Colors.lightGreen[800]!; // Vibrant green symbolizing untouched nature
-      case 'waterfall':
-        return Colors.blue[300]!; // Light blue representing water
-      case 'campsite':
-        return Colors.deepOrange[700]!; // Rich orange for outdoor adventure
-      case 'trail':
-        return Colors.brown[400]!; // Earthy tones matching the hiking theme
-      default:
-        return Colors.grey[600]!; // Neutral grey for undefined types
-    }
   }
 }
 
