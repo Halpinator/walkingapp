@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
+import 'package:walkingapp/components/my_webcamView.dart';
 
 const String apiKey = "5b3ce3597851110001cf62481e0f688e55fc43cd9bd1f5807ec3d81a";
 
@@ -60,26 +61,58 @@ Future<Map<String, dynamic>> fetchRoute(LatLng start, LatLng end) async {
   }
 }
 
-Future<List<POI>> fetchPOIs(String amenity) async {
+Future<List<POI>> fetchPOIs(String amenityType) async {
+  String overpassQuery = '';
+  // Adjusting the query based on the type of amenity
+  switch (amenityType) {
+    case 'park':
+      overpassQuery = '[leisure=park]';  // Parks are often leisure-focused.
+      break;
+    case 'picnic_site':
+      overpassQuery = '[tourism=picnic_site]';  // Specific tag for picnic sites.
+      break;
+    case 'viewpoint':
+      overpassQuery = '[tourism=viewpoint]';  // For scenic viewpoints.
+      break;
+    case 'historic_site':
+      overpassQuery = '[historic=site]';  // For sites of historical importance.
+      break;
+    case 'nature_reserve':
+      overpassQuery = '[leisure=nature_reserve]';  // Areas dedicated to preserving natural habitats.
+      break;
+    case 'trail':
+      overpassQuery = '[route=hiking]';  // Hiking trails are specific routes designed for walking.
+      break;
+    case 'waterfall':
+      overpassQuery = '[waterway=waterfall]';  // Natural waterfalls.
+      break;
+    case 'campsite':
+      overpassQuery = '[tourism=camp_site]';  // Places designated for camping.
+      break;
+    default:
+      overpassQuery = '[tourism=$amenityType]';  // Default fallback to tourism tag.
+      break;
+  }
+
   final url = Uri.parse(
-      'http://overpass-api.de/api/interpreter?data=[out:json];node[amenity=$amenity](53.3600,-2.4200,53.6300,-2.0500);out;');
+      'http://overpass-api.de/api/interpreter?data=[out:json];node$overpassQuery(53.3196,-2.4960,53.6270,-1.9090);out;');
 
   final response = await http.get(url);
 
   if (response.statusCode == 200) {
     final data = json.decode(response.body);
-    final pois = data['elements'] as List;
-    return pois.map((poi) {
-      final name = poi['tags']?['name'] ?? 'Unnamed $amenity';
-      final description = poi['tags']?['description'] ?? 'No description available';
+    final elements = data['elements'] as List;
+    return elements.map((element) {
+      final name = element['tags']?['name'] ?? 'Unnamed $amenityType';
+      final description = element['tags']?['description'] ?? 'No description available';
       return POI(
-        location: LatLng(poi['lat'], poi['lon']),
+        location: LatLng(element['lat'], element['lon']),
         name: name,
         description: description,
       );
     }).toList();
   } else {
-    throw Exception('Failed to load POIs');
+    throw Exception('Failed to load POIs for $amenityType');
   }
 }
 
@@ -104,23 +137,48 @@ class _AddPlanPageState extends State<AddPlanPage> {
   double currentZoom = 13;
   bool loopBack = false;
   Map<String, bool> poiToggles = {
-    'cafe': true,
-    'restaurant': false,
-    'hospital': false,
+    'park': false,
+    'picnic_site': false,
+    'viewpoint': false,
+    'historic_site': false,
+    'nature_reserve': false,
+    'trail': false,
+    'waterfall': false,
+    'campsite': false,
+    'webcam': false,
   };
   Map<String, List<POI>> poiLocations = {};
 
   @override
-  void initState() {
-    super.initState();
-    poiToggles.forEach((type, _) {
+void initState() {
+  super.initState();
+
+  // Fetch POIs for other types
+  poiToggles.forEach((type, _) {
+    if (type != 'webcam') {
       fetchPOIs(type).then((data) {
         setState(() {
           poiLocations[type] = data;
         });
       });
-    });
-  }
+    }
+  });
+
+  // Add manually defined webcam POIs
+  poiLocations['webcam'] = [
+    POI(
+      location: LatLng(53.593349, -1.800309), // Example coordinates
+      name: 'Peak District Webcam 1',
+      description: 'Live feed from Peak District 1',
+    ),
+    POI(
+      location: LatLng(53.4808, -2.2426), // Another example
+      name: 'Peak District Webcam 2',
+      description: 'Live feed from Peak District 2',
+    ),
+    // Add more webcams as needed
+  ];
+}
 
   Future<void> updateRoute() async {
     try {
@@ -254,7 +312,7 @@ class _AddPlanPageState extends State<AddPlanPage> {
                             size: 30,
                           ),
                         ),
-                      if (currentZoom >= 13)
+                      if (currentZoom >= 1)
                         for (var entry in poiToggles.entries)
                           if (entry.value)
                             for (POI poi in poiLocations[entry.key] ?? [])
@@ -263,7 +321,21 @@ class _AddPlanPageState extends State<AddPlanPage> {
                                 height: 80,
                                 point: poi.location,
                                 child: GestureDetector(
-                                  onTap: () => addPoiToRoute(poi),
+                                  onTap: () {
+                                    if (entry.key == 'webcam') {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => WebcamView(
+                                          url: 'https://www.maccinfo.com/WebcamCat/Webcamn200.jpg',
+                                          title: poi.name,
+                                          ),
+                                        ),
+                                      );
+                                    } else {
+                                    addPoiToRoute(poi);
+                                    }
+                                  },
                                   child: Icon(
                                     _getPOIIcon(entry.key),
                                     color: _getPOIColor(entry.key),
@@ -370,29 +442,51 @@ class _AddPlanPageState extends State<AddPlanPage> {
   }
 
   IconData _getPOIIcon(String type) {
-    switch (type) {
-      case 'cafe':
-        return Icons.local_cafe;
-      case 'restaurant':
-        return Icons.restaurant;
-      case 'hospital':
-        return Icons.local_hospital;
-      default:
-        return Icons.location_on;
-    }
+  switch (type) {
+    case 'park':
+      return Icons.local_florist; // Changed to more explicitly represent nature
+    case 'picnic_site':
+      return Icons.food_bank; // Using a more specific icon if available
+    case 'viewpoint':
+      return Icons.remove_red_eye; // Suggestive of viewing or sightseeing
+    case 'historic_site':
+      return Icons.account_balance; // Represents historical buildings or sites
+    case 'nature_reserve':
+      return Icons.eco; // Represents environmental and ecological sites
+    case 'waterfall':
+      return Icons.waterfall_chart; // Iconic representation of waterfalls
+    case 'campsite':
+      return Icons.forest; // Ideal for campsites
+    case 'trail':
+      return Icons.terrain; // Represents rough terrains on hiking trails
+    case 'webcam':
+      return Icons.camera; // Represents rough terrains on hiking trails
+    default:
+      return Icons.location_on; // Generic location icon for unspecified types
+  }
   }
 
   Color _getPOIColor(String type) {
-    switch (type) {
-      case 'cafe':
-        return Colors.brown;
-      case 'restaurant':
-        return Colors.green;
-      case 'hospital':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
+  switch (type) {
+    case 'park':
+      return Colors.green[700]!; // Darker shade of green for better visibility
+    case 'picnic_site':
+      return Colors.amber[800]!; // Deeper orange for a warm, inviting look
+    case 'viewpoint':
+      return Colors.deepPurple[400]!; // A vibrant purple to denote special spots
+    case 'historic_site':
+      return Colors.brown[600]!; // Brown reflects the earthy, historical essence
+    case 'nature_reserve':
+      return Colors.lightGreen[800]!; // Vibrant green symbolizing untouched nature
+    case 'waterfall':
+      return Colors.blue[300]!; // Light blue representing water
+    case 'campsite':
+      return Colors.deepOrange[700]!; // Rich orange for outdoor adventure
+    case 'trail':
+      return Colors.brown[400]!; // Earthy tones matching the hiking theme
+    default:
+      return Colors.grey[600]!; // Neutral grey for undefined types
+  }
   }
 }
 

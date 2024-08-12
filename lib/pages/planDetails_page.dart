@@ -12,7 +12,7 @@ class PlanDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     const lightTileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-    final darkTileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png';
+    const darkTileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png';
 
 
 
